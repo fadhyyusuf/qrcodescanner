@@ -30,6 +30,12 @@ class QrScanner(private val context: Context) {
         cameraProviderFuture.addListener({
             cameraProvider = cameraProviderFuture.get()
 
+            val lifecycleOwner = context as? androidx.lifecycle.LifecycleOwner
+                ?: return@addListener
+            if (lifecycleOwner.lifecycle.currentState == androidx.lifecycle.Lifecycle.State.DESTROYED) {
+                return@addListener
+            }
+
             val preview = Builder().build().also {
                 it.setSurfaceProvider(cameraView.surfaceProvider)
             }
@@ -53,7 +59,7 @@ class QrScanner(private val context: Context) {
 
             cameraProvider?.unbindAll()
             cameraProvider?.bindToLifecycle(
-                context as androidx.lifecycle.LifecycleOwner,
+                lifecycleOwner,
                 cameraSelector,
                 preview,
                 imageAnalyzer
